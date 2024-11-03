@@ -2,6 +2,7 @@ package dns
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -197,13 +198,16 @@ func (h *Handler) Process(ctx context.Context, link *transport.Link, d internet.
 
 			if !h.isOwnLink(ctx) {
 				isIPQuery, domain, id, qType := parseIPQuery(b.Bytes())
+				fmt.Printf("h.nonIPQuery==%s\n", h.nonIPQuery)
 				if isIPQuery || h.nonIPQuery != "drop" {
 					if domain, err := strmatcher.ToDomain(domain); err == nil {
 						go h.handleIPQuery(id, qType, domain, writer)
 					} else {
+						fmt.Printf("h.handleDNSError:RCodeFormatError!\n")
 						h.handleDNSError(id, dnsmessage.RCodeFormatError, writer)
 					}
 				} else {
+					fmt.Printf("h.handleDNSError:RCodeNotImplemented!\n")
 					h.handleDNSError(id, dnsmessage.RCodeNotImplemented, writer)
 				}
 			} else if err := connWriter.WriteMessage(b); err != nil {
